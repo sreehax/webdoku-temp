@@ -1,0 +1,35 @@
+table {
+    border-collapse: collapse;
+    font-family: sans-serif;
+}
+colgroup, tbody {
+    border: solid medium;
+}
+td {
+    border: solid thin;
+    height: 2.0em;
+    width: 2.0em;
+    text-align: center;
+    padding: 0;
+    font-size: 110%;
+    vertical-align: middle;
+    outline: none;
+}
+.selected {
+    background-color: blanchedalmond;
+}
+button {
+    background-color: #06a29e;
+    border: none;
+    color: #fff;
+    padding: 15px 32px;
+    text-align: center;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    border-radius: 10px;
+}
+
+button {
+    display: inline-block;
+}

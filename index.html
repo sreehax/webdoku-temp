@@ -1,0 +1,99 @@
+<html>
+    <head>
+        <title>Sudoku Solver</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+        <link rel="stylesheet" href="style.css" />
+    </head>
+    <body>
+        <table>
+            <colgroup><col><col><col></colgroup>
+            <colgroup><col><col><col></colgroup>
+            <colgroup><col><col><col></colgroup>
+            <tbody>
+                <tr> <td> </td> <td> </td> <td> </td> <td> </td> <td> </td> <td> </td> <td> </td> <td> </td> <td> </td> </tr>
+                <tr> <td> </td> <td> </td> <td> </td> <td> </td> <td> </td> <td> </td> <td> </td> <td> </td> <td> </td> </tr>
+                <tr> <td> </td> <td> </td> <td> </td> <td> </td> <td> </td> <td> </td> <td> </td> <td> </td> <td> </td> </tr>
+            </tbody><tbody>
+                <tr> <td> </td> <td> </td> <td> </td> <td> </td> <td> </td> <td> </td> <td> </td> <td> </td> <td> </td> </tr>
+                <tr> <td> </td> <td> </td> <td> </td> <td> </td> <td> </td> <td> </td> <td> </td> <td> </td> <td> </td> </tr>
+                <tr> <td> </td> <td> </td> <td> </td> <td> </td> <td> </td> <td> </td> <td> </td> <td> </td> <td> </td> </tr>
+            </tbody><tbody>
+                <tr> <td> </td> <td> </td> <td> </td> <td> </td> <td> </td> <td> </td> <td> </td> <td> </td> <td> </td> </tr>
+                <tr> <td> </td> <td> </td> <td> </td> <td> </td> <td> </td> <td> </td> <td> </td> <td> </td> <td> </td> </tr>
+                <tr> <td> </td> <td> </td> <td> </td> <td> </td> <td> </td> <td> </td> <td> </td> <td> </td> <td> </td> </tr>
+            </tbody>
+        </table>
+        <button id="solve">Solve</button>
+        <button id="clear">Clear</button>
+        <button id="buttonDefault">Load default</button>
+        <script>
+            let elements = document.getElementsByTagName("td");
+            var selected = null;
+            var board = null;
+            var getBoard = () => alert("Solver not loaded yet!");
+            var solveFn = () => alert("Solver not loaded yet!");
+            var memory = null;
+            for(var i = 0; i < elements.length; i++) {
+                elements[i].id = `board-${i}`;
+
+                elements[i].contentEditable = true;
+                elements[i].addEventListener("click", e => {
+                    if (selected) selected.classList.remove("selected");
+                    selected = e.target;
+                    selected.classList.add("selected");
+                });
+                elements[i].addEventListener("keypress", e => {
+                    value = e.target.innerText.replace(/\s/g, "")
+                    if (e.charCode < 48 || e.charCode > 57 || value.length == 1) e.preventDefault();
+                });
+            }
+            var imports = {
+                env: {
+                    board: new WebAssembly.Memory({initial:81,maximum:81})
+                }
+            };
+            document.getElementById("solve").addEventListener("click", e => {
+                // get the board and copy in the elements
+                getBoard();
+                for(var i = 0; i < elements.length; i++) {
+                    value = elements[i].innerText.replace(/\s/g, "");
+                    board[i] = (value != "") ? value : 0;
+                }
+                // solve and copy them back
+                if (!solveFn()) {
+                    alert("failed to solve :(");
+                }
+                for(var i = 0; i < elements.length; i++) {
+                    elements[i].innerText = (board[i] != 0) ? board[i] : " ";
+                }
+
+            });
+            document.getElementById("clear").addEventListener("click", e => {
+                for(var i = 0; i < elements.length; i++) {
+                    elements[i].innerText = "";
+                }
+            });
+            let defaultConfig = [0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 5, 8, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 9, 0, 3, 0, 0, 0, 0, 6, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 8, 0, 2, 0, 0, 0, 2, 1, 3, 0, 0, 8, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, 6, 0, 0, 4, 0, 5, 0, 7, 0];
+            document.getElementById("buttonDefault").addEventListener("click", e => {
+                for(var i = 0; i < elements.length; i++) {
+                    elements[i].innerText = (defaultConfig[i] != 0) ? defaultConfig[i] : " ";
+                }
+            });
+            var lol = WebAssembly.instantiateStreaming(fetch("zig-out/lib/webdoku.wasm"), imports)
+                .then(obj => {
+                    // get the memory exported from wasm
+                    // s = "to be upper"
+                    memory = obj.instance.exports.memory;
+                    getBoard = () => {
+                        loc = obj.instance.exports.getBoardLocation();
+                        board = new Uint8Array(memory.buffer, loc, 81);
+                    };
+                    solveFn = () => {
+                        c = obj.instance.exports.solve();
+                        board = new Uint8Array(memory.buffer, loc, 81);
+                        return c
+                    };
+                });
+        </script>
+    </body>
+</html>
